@@ -1,5 +1,4 @@
 'use client';
-import { useState } from "react";
 import { ConversationProvider } from "./contexts/ConversationContext";
 import Sidebar from "./components/Sidebar";
 import Chat from "./components/Chat";

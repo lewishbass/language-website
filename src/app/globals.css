@@ -57,3 +57,41 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* Fancy select styling */
+.fancy-select-wrapper {
+  position: relative;
+}
+
+.fancy-select {
+  appearance: none;
+  transition: all 0.3s ease;
+  background-image: linear-gradient(to bottom, rgba(23, 32, 46, 0.8), rgba(15, 23, 42, 0.9));
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.fancy-select:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  background-image: linear-gradient(to bottom, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 1));
+  border-color: rgba(96, 165, 250, 0.5);
+}
+
+.fancy-select:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Style for the dropdown options */
+.fancy-select option {
+  background-color: #1e293b;
+  color: white;
+  padding: 8px 12px;
+}
+
+/* For Firefox */
+@-moz-document url-prefix() {
+  .fancy-select {
+    text-indent: 0.01px;
+    text-overflow: '';
+    padding-right: 1rem;
+  }
+}
