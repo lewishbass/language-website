@@ -1,0 +1,19 @@
+├── public
+│   └── vercel.svg
+├── src
+│   └── app
+│       ├── components
+│       │   └── Sidebar.tsx
+│       ├── contexts
+│       │   └── ConversationContext.tsx
+│       ├── favicon.ico
+│       ├── globals.css
+│       └── page.tsx
+├── eslint.config.mjs
+├── filetree.txt
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── README.md
+└── tsconfig.json
