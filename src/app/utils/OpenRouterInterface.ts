@@ -25,6 +25,22 @@ interface OpenRouterCompletionResponse {
   };
 }
 
+// Define streaming data structure
+interface OpenRouterStreamingResponse {
+  id: string;
+  object: string;
+  created: number;
+  model: string;
+  choices: {
+    delta: {
+      role?: string;
+      content?: string;
+    };
+    index: number;
+    finish_reason: string | null;
+  }[];
+}
+
 // Format our app's Message[] into OpenRouter's expected format
 export const formatConversation = (messages: Message[]): OpenRouterMessage[] => {
   return messages.map(message => {
@@ -51,8 +67,14 @@ export const formatConversation = (messages: Message[]): OpenRouterMessage[] => 
 export const getCompletion = async (
   model: string, 
   messages: Message[],
-  systemMessage?: string | undefined
+  systemMessage?: string | undefined,
+  onProgress?: (partialResponse: string) => void
 ): Promise<string> => {
+  // If onProgress callback is provided, use streaming
+  if (onProgress) {
+    return streamCompletion(model, messages, systemMessage, onProgress);
+  }
+
   // Get API key from environment variables
   const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
   
@@ -107,6 +129,110 @@ export const getCompletion = async (
   }
 };
 
+// New function for handling streaming completions
+export const streamCompletion = async (
+  model: string,
+  messages: Message[],
+  systemMessage: string | undefined,
+  onProgress: (partialResponse: string) => void
+): Promise<string> => {
+  const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+
+  if (!apiKey) {
+    throw new Error('OpenRouter API key is not set in environment variables');
+  }
+
+  let content = [...messages];
+  if (systemMessage) {
+    const systemMessageObj = {
+      id: 'system',
+      text: systemMessage,
+      sender: 'system',
+      senderName: 'System',
+      timestamp: new Date(),
+    };
+    content = [systemMessageObj, ...content];
+  }
+
+  // Format messages for OpenRouter
+  const formattedMessages = formatConversation(content);
+
+  try {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+        "X-Title": "Language Teacher Website",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model,
+        messages: formattedMessages,
+        stream: true // Enable streaming
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenRouter API error: ${response.status} ${errorText}`);
+    }
+
+    // Ensure response is readable as a stream
+    if (!response.body) {
+      throw new Error('Response body is null');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let fullResponse = "";
+
+    // Process the stream
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      // Decode the chunk
+      const chunk = decoder.decode(value, { stream: true });
+
+      // Split the chunk into lines and process each line
+      const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+      for (const line of lines) {
+        // Remove 'data: ' prefix and parse JSON
+        if (line.startsWith('data: ')) {
+          const jsonStr = line.slice(6);
+
+          // The "[DONE]" message indicates the end of the stream
+          if (jsonStr === "[DONE]") continue;
+
+          try {
+            const data = JSON.parse(jsonStr) as OpenRouterStreamingResponse;
+
+            // Process each choice in the response
+            if (data.choices && data.choices.length > 0) {
+              // Get content from delta
+              const content = data.choices[0].delta.content;
+
+              if (content) {
+                fullResponse += content;
+                onProgress(fullResponse);
+              }
+            }
+          } catch (e) {
+            console.error('Error parsing streaming JSON:', e, jsonStr);
+          }
+        }
+      }
+    }
+
+    return fullResponse;
+  } catch (error) {
+    console.error('Error streaming completion from OpenRouter:', error);
+    throw error;
+  }
+};
+
 export const getSummary = async (
   model: string,
   messages: Message[]
@@ -116,4 +242,4 @@ export const getSummary = async (
   
   const response = await getCompletion(model, messages, summaryMessage);
   return response;
-}
+};

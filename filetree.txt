@@ -1,11 +1,20 @@
 ├── public
+│   ├── logos
+│   │   ├── claude.svg
+│   │   ├── gemini.svg
+│   │   ├── huggingface.svg
+│   │   ├── meta.svg
+│   │   ├── openai.svg
 │   └── vercel.svg
 ├── src
 │   └── app
 │       ├── components
-│       │   └── Sidebar.tsx
+│       │   ├── Chat.tsx
+│       │   ├── Sidebar.tsx
+│       │   └── TeacherEditPopup.tsx
 │       ├── contexts
 │       │   └── ConversationContext.tsx
+│       ├── utils
 │       ├── favicon.ico
 │       ├── globals.css
 │       └── page.tsx

@@ -13,8 +13,8 @@ export const metadata = {
 // MathJax configuration
 const mathJaxConfig = {
   tex: {
-    inlineMath: [['$', '$'], ['(', ')']],
-    displayMath: [['$$', '$$'], ['[', ']']],
+    inlineMath: [['$', '$']],
+    displayMath: [['$$', '$$']],
     processEscapes: true,
   },
   options: {
@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={inter.className + " w-screen h-screen overflow-hidden"}>
         <MathJaxContext config={mathJaxConfig}>
           <ConversationProvider>
             {children}

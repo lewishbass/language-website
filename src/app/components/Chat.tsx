@@ -31,6 +31,7 @@ export default function Chat() {
   const [inputText, setInputText] = useState('');
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState('');
@@ -40,7 +41,10 @@ export default function Chat() {
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messageContainerRef.current && messagesEndRef.current) {
+      const container = messageContainerRef.current;
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages]);
 
   // Load system prompt when active conversation changes
@@ -139,6 +143,7 @@ export default function Chat() {
             overflow: 'auto',
             maxWidth: '100%',
             lineHeight: '1',
+            overflowWrap: 'break-word',
           }}
         />
       }
@@ -149,9 +154,6 @@ export default function Chat() {
   }
 
 
-  useEffect(() => {
-    console.log('Active Conv:', activeConversation);
-  }, [activeConversation]);
 
   if (!activeConversation) {
     return (
@@ -168,7 +170,7 @@ export default function Chat() {
       <div className="p-4">
         <div className="flex items-center align-center mb-2">
           {activeModel && activeModel?.logoURL &&
-            <img src={activeModel.logoURL} alt="Logo" className="w-8 h-8 rounded-full mr-2" style={{ filter: "drop-shadow(2px 2px 1px #fff1)" }} />
+            <img src={activeModel.logoURL} alt="Logo" className="w-8 h-8 rounded-full mr-2" style={{ filter: "drop-shadow(2px 2px 3px #fff8)" }} />
           }
           <h2 className="text-xl font-semibold text-white">{activeConversation.title}</h2>
 
@@ -253,7 +255,9 @@ export default function Chat() {
       <div className="bg-gradient-to-r from-transparent via-white/50 to-transparent h-[2px] w-[100%] mb-3"></div>
 
       {/* Messages container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar overflow-x-hidden max-w-full">
+      <div
+        ref={messageContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar overflow-x-hidden max-w-full">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-white/60 text-lg">No messages yet. Start a conversation!</div>
@@ -315,6 +319,7 @@ export default function Chat() {
             </div>
           ))
         )}
+        <div className="w-ful h-[8px] loading-gradient rounded-full m-4" style={{ opacity: generating ? 1 : 0, transition: "opacity 1s ease" }} />
         <div ref={messagesEndRef} />
       </div>
 
@@ -339,7 +344,7 @@ export default function Chat() {
             <FaPaperPlane size={20} />
           </button>
         </div>
-        <div className="text-xs text-white/40 mt-2">
+        <div className="text-xs text-white/20 mt-0 -mb-2">
           Press Enter to send, Shift+Enter for new line
         </div>
       </div>
