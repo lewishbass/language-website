@@ -115,7 +115,8 @@ export const getCompletion = async (
         },
         body: JSON.stringify({
           model,
-          messages: formattedMessages
+          messages: formattedMessages,
+          frequency_penalty: 0.3,
         })
       }
       );
@@ -130,7 +131,8 @@ export const getCompletion = async (
         },
         body: JSON.stringify({
           model,
-          messages: formattedMessages
+          messages: formattedMessages,
+          frequency_penalty: 0.3,
         })
       });
     } else {
@@ -201,7 +203,8 @@ export const streamCompletion = async (
         body: JSON.stringify({
           model,
           messages: formattedMessages,
-          stream: true // Enable streaming
+          stream: true, // Enable streaming
+          frequency_penalty: 0.3,
         })
       }
       );
@@ -217,7 +220,8 @@ export const streamCompletion = async (
         body: JSON.stringify({
           model,
           messages: formattedMessages,
-          stream: true // Enable streaming
+          stream: true, // Enable streaming
+          frequency_penalty: 0.3,
         })
       });
     }
