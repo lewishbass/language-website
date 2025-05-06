@@ -2,6 +2,8 @@
 
 import { Message } from '../contexts/ConversationContext';
 
+const ngrok_url = "https://fce8-128-173-236-186.ngrok-free.app/v1/chat/completions";
+
 // Types for OpenRouter API
 interface OpenRouterMessage {
   role: 'user' | 'assistant' | 'system';
@@ -68,11 +70,12 @@ export const getCompletion = async (
   model: string, 
   messages: Message[],
   systemMessage?: string | undefined,
-  onProgress?: (partialResponse: string) => void
+  onProgress?: (partialResponse: string) => void,
+  backend: 'openrouter' | 'ngrok' = 'openrouter'
 ): Promise<string> => {
   // If onProgress callback is provided, use streaming
   if (onProgress) {
-    return streamCompletion(model, messages, systemMessage, onProgress);
+    return streamCompletion(model, messages, systemMessage, onProgress, backend);
   }
 
   // Get API key from environment variables
@@ -96,19 +99,43 @@ export const getCompletion = async (
   const formattedMessages = formatConversation(content);
   
   try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        "X-Title": "Language Teacher Website",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model,
-        messages: formattedMessages
-      })
-    });
+    let response = {
+      ok: false,
+      status: 500,
+      json: async () => ({}),
+      text: async () => ({}),
+      body: null,
+    } as Response;
+    if (backend === 'ngrok') {
+      // Handle ngrok backend if needed
+      response = await fetch(ngrok_url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model,
+          messages: formattedMessages
+        })
+      }
+      );
+    } else if (backend === 'openrouter') {
+      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+          "X-Title": "Language Teacher Website",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model,
+          messages: formattedMessages
+        })
+      });
+    } else {
+      throw new Error('Invalid backend specified. Use "openrouter" or "ngrok".');
+    }
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -120,13 +147,12 @@ export const getCompletion = async (
     // Return the generated content from the first choice
     if (data.choices && data.choices.length > 0) {
       return data.choices[0].message.content;
-    } else {
-      throw new Error('No completion returned from OpenRouter');
     }
   } catch (error) {
     console.error('Error getting completion from OpenRouter:', error);
     throw error;
   }
+  return ""; // Fallback return in case of failure
 };
 
 // New function for handling streaming completions
@@ -134,10 +160,11 @@ export const streamCompletion = async (
   model: string,
   messages: Message[],
   systemMessage: string | undefined,
-  onProgress: (partialResponse: string) => void
+  onProgress: (partialResponse: string) => void,
+  backend: 'openrouter' | 'ngrok' = 'openrouter'
 ): Promise<string> => {
   const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
-
+  console.log("backend", backend);
   if (!apiKey) {
     throw new Error('OpenRouter API key is not set in environment variables');
   }
@@ -158,20 +185,43 @@ export const streamCompletion = async (
   const formattedMessages = formatConversation(content);
 
   try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        "X-Title": "Language Teacher Website",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model,
-        messages: formattedMessages,
-        stream: true // Enable streaming
-      })
-    });
+    let response = {
+      ok: false,
+      status: 500,
+      json: async () => ({}),
+      text: async () => ({}),
+      body: null,
+    } as Response;
+    if (backend === 'ngrok') {
+      response = await fetch(ngrok_url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model,
+          messages: formattedMessages,
+          stream: true // Enable streaming
+        })
+      }
+      );
+    } else if (backend === 'openrouter') {
+      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+          "X-Title": "Language Teacher Website",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model,
+          messages: formattedMessages,
+          stream: true // Enable streaming
+        })
+      });
+    }
+
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -235,11 +285,11 @@ export const streamCompletion = async (
 
 export const getSummary = async (
   model: string,
-  messages: Message[]
+  messages: Message[],
 ): Promise<string> => {
 
   const summaryMessage = 'You generate titles for conversations. Given a conversation, return a three word title and nothing else.';
   
-  const response = await getCompletion(model, messages, summaryMessage);
-  return response;
+  return await getCompletion('openai/gpt-4.1-mini', messages, summaryMessage);
+
 };

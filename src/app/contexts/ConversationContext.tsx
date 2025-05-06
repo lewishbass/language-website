@@ -51,6 +51,7 @@ interface ModelChoice {
   description: string;
   logoURL?: string; // Optional logo URL for the model
   cost: number; // Cost associated with the model
+  backend?: 'openrouter' | 'ngrok'; // Optional backend for the model
 }
 
 type personalityType = 'professional' | 'casual' | 'robotic' | 'technical'; // Define the personality types
@@ -72,10 +73,11 @@ interface Teacher {
 }
 
 const modelChoices: ModelChoice[] = [
-  { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1-mini', description: 'Fast and capable OpenAI model', logoURL: '/logos/openai.svg', cost: 1.6 },
-  { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', description: 'Fast, efficient Google AI model', logoURL: '/logos/gemini.svg', cost: 0.4 },
-  { id: 'anthropic/claude-3.5-haiku', name: 'Claude 3.5 Haiku', description: 'Compact, efficient Anthropic model', logoURL: '/logos/claude.svg', cost: 4 },
-  { id: 'meta-llama/llama-4-maverick', name: 'Llama 4 Maverick', description: 'Advanced open-source model from Meta', logoURL: '/logos/meta.svg', cost: 0.6 },
+  { id: 'openai/gpt-4.1-mini', name: 'GPT-4.1-mini', description: 'Fast and capable OpenAI model', logoURL: '/logos/openai.svg', cost: 1.6, backend: "openrouter" },
+  { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', description: 'Fast, efficient Google AI model', logoURL: '/logos/gemini.svg', cost: 0.4, backend: "openrouter" },
+  { id: 'anthropic/claude-3.5-haiku', name: 'Claude 3.5 Haiku', description: 'Compact, efficient Anthropic model', logoURL: '/logos/claude.svg', cost: 4, backend: "openrouter" },
+  { id: 'meta-llama/llama-4-maverick', name: 'Llama 4 Maverick', description: 'Advanced open-source model from Meta', logoURL: '/logos/meta.svg', cost: 0.6, backend: "openrouter" },
+  { id: '49Simoney/OpenBuddy-SpanishLanguageTeacher-7B-3k-merged', name: 'OpenBuddy Spanish Teacher', description: 'Specialized Spanish language teacher model', logoURL: '/logos/openbuddy.png', cost: 0.2, backend: "ngrok" },
 ]
 
 interface ConversationContextType {
@@ -370,7 +372,8 @@ ${teacher.personalHistory ? `Your personal history is: ${teacher.personalHistory
           const updatedStreamingMessages = [...updatedMessages, updatedAssistantMessage];
           //saveMessages(activeConversation.contentPointer, updatedStreamingMessages);
           setMessages(updatedStreamingMessages);
-        }
+        },
+        activeModel.backend || 'openrouter' // Use the backend from the model choice or default to 'openrouter'
       );
 
       // Final update after streaming completes
@@ -395,7 +398,8 @@ ${teacher.personalHistory ? `Your personal history is: ${teacher.personalHistory
       });
 
       if (activeConversation.title === 'New Conversation' || messagesWithFinalResponse.length % 20 < 2) {
-        const summaryText = await getSummary(activeConversation.model, messagesWithFinalResponse);
+        const summaryText = await getSummary(activeConversation.model, messagesWithFinalResponse); // Get summary of the conversation
+        console.log('Summary:', summaryText);
         updateConversation(activeConversation.id, {
           title: summaryText, // Update the conversation title with the summary
           lastUpdated: new Date(), // Update the last updated time
@@ -627,7 +631,7 @@ ${teacher.personalHistory ? `Your personal history is: ${teacher.personalHistory
           systemPrompt: formatPrompt + getTeacherPrompt(teacher), // Update the system prompt with the teacher's information
         });
         setMessageBuffer({
-          text: `Generate a curriculum for ${teacher?.subject} for a ${teacher?.studentLevel} student. Return a json with one object called "lessons" that contains an array of lessons. Each lesson should be a string of a list of topics to cover. e.g. "Lesson Name: topic 1, topic 2, topic 3...". No Excuses.`,
+          text: `Generate a curriculum for ${teacher?.subject} for a ${teacher?.studentLevel} student. Return a json formatted string with one object called "lessons" that contains an array of lessons. Each lesson should be a string of a list of topics to cover. e.g. "Lesson Name: topic 1, topic 2, topic 3...". No Excuses.`,
           sender: 'user',
           senderName: 'System',
           timestamp: new Date(),
