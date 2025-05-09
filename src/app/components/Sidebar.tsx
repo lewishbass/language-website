@@ -76,7 +76,8 @@ export default function Sidebar() {
         <button
           onClick={handleNewConversation}
           className="wg group relative p-2 hover:bg-white/20 rounded-lg flex items-center gap-2 w-10 h-10 
-                    transition-all duration-200 hover:shadow-inner"
+              transition-all duration-200 hover:shadow-inner"
+          title="Start a new conversation"
         >
           <FaEdit size={18} className="absolute top-1/2 left-1/2 w-5 h-5 -translate-x-1/2 -translate-y-1/2 
                                       text-white/60 group-hover:text-white transition-colors duration-200" />
@@ -86,6 +87,7 @@ export default function Sidebar() {
           onClick={handleNewTeacher}
           className="wg group relative p-2 hover:bg-white/20 rounded-lg flex items-center gap-2 w-10 h-10 
                     transition-all duration-200 hover:shadow-inner"
+          title="Add a new teacher"
         >
           <FaUserPlus size={18} className="absolute top-1/2 left-1/2 w-5 h-5 -translate-x-1/2 -translate-y-1/2 
                                       text-white/60 group-hover:text-white transition-colors duration-200" />

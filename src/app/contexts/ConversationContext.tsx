@@ -77,7 +77,7 @@ const modelChoices: ModelChoice[] = [
   { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', description: 'Fast, efficient Google AI model', logoURL: '/logos/gemini.svg', cost: 0.4, backend: "openrouter" },
   { id: 'anthropic/claude-3.5-haiku', name: 'Claude 3.5 Haiku', description: 'Compact, efficient Anthropic model', logoURL: '/logos/claude.svg', cost: 4, backend: "openrouter" },
   { id: 'meta-llama/llama-4-maverick', name: 'Llama 4 Maverick', description: 'Advanced open-source model from Meta', logoURL: '/logos/meta.svg', cost: 0.6, backend: "openrouter" },
-  { id: '49Simoney/OpenBuddy-SpanishLanguageTeacher-7B-3k-merged', name: 'OpenBuddy Spanish Teacher', description: 'Specialized Spanish language teacher model', logoURL: '/logos/openbuddy.png', cost: 0.2, backend: "ngrok" },
+  { id: '49Simoney/SpanishLanguageTeacher-7B-9k-merged', name: 'OpenBuddy Spanish Teacher', description: 'Specialized Spanish language teacher model', logoURL: '/logos/openbuddy.png', cost: 0.2, backend: "ngrok" },
 ]
 
 interface ConversationContextType {
