@@ -229,7 +229,7 @@ export const streamCompletion = async (
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`OpenRouter API error: ${response.status} ${errorText}`);
+      throw new Error(`API error: ${response.status} ${errorText}`);
     }
 
     // Ensure response is readable as a stream
@@ -282,7 +282,7 @@ export const streamCompletion = async (
 
     return fullResponse;
   } catch (error) {
-    console.error('Error streaming completion from OpenRouter:', error);
+    console.error('Error streaming completion:', error);
     throw error;
   }
 };
